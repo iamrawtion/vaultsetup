@@ -1,0 +1,8 @@
+[all:vars]
+ansible_connection=ssh
+ansible_user=vagrant
+
+[vault]
+client1
+
+

@@ -1,0 +1,48 @@
+---
+- hosts: "vault"
+  sudo: yes
+
+  tasks:
+    - name: Download Vault Server Zip
+      get_url:
+        url: https://releases.hashicorp.com/vault/1.0.2/vault_1.0.2_linux_amd64.zip
+        dest: /opt/
+
+    - name: Install unzip
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+          - unzip
+          - systemd
+
+    - name: Extract Binary
+      unarchive:
+        src: /opt/vault_1.0.2_linux_amd64.zip
+        dest: /usr/bin/
+        remote_src: yes
+
+    - name: Create vault confi directories
+      file:
+        path: "{{ item }}"
+        mode: 0755
+        state: directory
+        recurse: yes
+      with_items:
+        - /etc/vault
+        - /vault-data
+        - /logs/vault/
+
+    - name: Copy configs
+      copy:
+        src: ../files/config.json
+        dest: /etc/vault/
+
+    - name: Copy service init scripts
+      copy:
+        src: ../files/vault.service
+        dest: /etc/systemd/system/
+        mode: 0777
+
+    - name: Start vault service
+      command: systemctl start vault.service
